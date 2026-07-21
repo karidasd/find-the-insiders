@@ -118,14 +118,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const shortAddr = w.address.substring(0, 6) + "..." + w.address.substring(w.address.length - 4);
             const shortFunder = w.funding_source.substring(0, 6) + "..." + w.funding_source.substring(w.funding_source.length - 4);
             
+            const ageBadge = w.is_fresh_wallet 
+                ? `<span class="tag-badge" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--color-danger); font-size:0.75rem;"><i class="fas fa-baby"></i> FRESH (${w.wallet_tx_count} txs)</span>`
+                : `<span class="tag-badge" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--color-safe); font-size:0.75rem;"><i class="fas fa-clock"></i> ACTIVE (${w.wallet_tx_count} txs)</span>`;
+
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><a href="https://solscan.io/account/${w.address}" target="_blank" class="addr-link">${shortAddr} <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i></a></td>
                 <td><span class="tag-badge ${w.type.toLowerCase()}">${w.type}</span></td>
+                <td>${ageBadge}</td>
                 <td style="font-weight:700;">${w.percentage_held.toFixed(2)}%</td>
                 <td class="font-mono">${w.sol_spent.toFixed(2)} SOL</td>
                 <td>Block ${w.block_purchased}</td>
-                <td><a href="https://solscan.io/account/${w.funding_source}" target="_blank" class="addr-link">${w.funding_source.includes("Hot Wallet") || w.funding_source.includes("Source") ? w.funding_source : shortFunder}</a></td>
+                <td><a href="https://solscan.io/account/${w.funding_source}" target="_blank" class="addr-link">${w.funding_source.includes("Hot Wallet") || w.funding_source.includes("Source") || w.funding_source.includes("Hub") || w.funding_source.includes("Authority") ? w.funding_source : shortFunder}</a></td>
                 <td class="font-mono">${w.funding_amount.toFixed(2)} SOL</td>
             `;
             tableBody.appendChild(tr);
