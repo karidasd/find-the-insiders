@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check backend status
     async function checkBackendStatus() {
         try {
-            const res = await fetch("http://localhost:8000/api/status");
+            const res = await fetch("/api/status");
             if (res.ok) {
                 const data = await res.json();
                 const modeText = data.helius_connected ? "Live Analysis Mode" : "Hybrid Simulation Mode";
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dashboard.style.display = "none";
         
         try {
-            const res = await fetch(`http://localhost:8000/api/analyze/${address}`);
+            const res = await fetch(`/api/analyze/${address}`);
             if (!res.ok) {
                 const errData = await res.json();
                 throw new Error(errData.detail || "Failed to analyze token.");
