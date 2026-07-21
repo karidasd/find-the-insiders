@@ -82,33 +82,58 @@ document.addEventListener("DOMContentLoaded", () => {
         const scoreEl = document.getElementById("risk-score");
         const riskLabel = document.getElementById("risk-label");
         const badge = document.getElementById("risk-level-badge");
-        const circle = document.getElementById("risk-circle");
+        const circleWrap = document.querySelector(".risk-circle-wrap");
         const explanation = document.getElementById("risk-explanation");
-        
-        // Update circle conic gradient percentage
-        circle.style.setProperty('--percentage', `${score}%`);
-        scoreEl.textContent = score;
-        
-        // Adjust labels and colors based on score
+
+        // Determine color based on score
+        let riskColor = "var(--color-safe)";
+        let riskGlow  = "rgba(16, 185, 129, 0.45)";
+        let riskText  = "";
+        if (score >= 75) {
+            riskColor = "var(--color-danger)";
+            riskGlow  = "rgba(239, 68, 68, 0.5)";
+            riskText  = "CRITICAL INSIDER DANGER. Multiple wallet clusters share a common funding origin at Block 0. Extremely high probability of a coordinated developer dump.";
+        } else if (score >= 50) {
+            riskColor = "var(--color-warning)";
+            riskGlow  = "rgba(245, 158, 11, 0.45)";
+            riskText  = "HIGH INSIDER ACTIVITY. Several early wallets are linked through shared CEX funding or bought within the first 3 blocks of launch.";
+        } else if (score >= 25) {
+            riskColor = "#eab308";
+            riskGlow  = "rgba(234, 179, 8, 0.4)";
+            riskText  = "MEDIUM SUSPICION. Moderate cluster overlaps detected. Some early buyers are connected, but supply distribution is relatively spread.";
+        } else {
+            riskText = "SAFE OR LOW RISK. Clear wallet distributions. Funding sources appear organic, and early buying activity shows no insider coordination.";
+        }
+
+        // Animated count-up for the score number
+        let current = 0;
+        const duration = 1200; // ms
+        const startTime = performance.now();
+        const countUp = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            current = Math.round(eased * score);
+            scoreEl.textContent = current;
+            if (progress < 1) requestAnimationFrame(countUp);
+        };
+        requestAnimationFrame(countUp);
+
+        // Animate the conic gradient arc
+        circleWrap.style.setProperty("--percentage", "0");
+        circleWrap.style.background = `conic-gradient(${riskColor} calc(var(--percentage, 0) * 1%), rgba(255,255,255,0.04) 0)`;
+        circleWrap.style.filter = `drop-shadow(0 0 18px ${riskGlow})`;
+        setTimeout(() => {
+            circleWrap.style.transition = "background 1.2s ease";
+            circleWrap.style.setProperty("--percentage", score);
+        }, 60);
+
+        // Labels
         riskLabel.textContent = data.risk_level;
         badge.textContent = data.risk_level;
-        
-        // Remove existing class tags
-        badge.style.backgroundColor = "";
-        
-        if (score >= 75) {
-            badge.style.backgroundColor = "var(--color-danger)";
-            explanation.textContent = "CRITICAL INSIDER DANGER. Multiple wallet clusters found with shared funding sources at Block 0. Extremely high chance of developer dump.";
-        } else if (score >= 50) {
-            badge.style.backgroundColor = "var(--color-warning)";
-            explanation.textContent = "HIGH INSIDER ACTIVITY. Several early wallets are linked through CEX funding pipelines or bought within the first 3 blocks of launch.";
-        } else if (score >= 25) {
-            badge.style.backgroundColor = "#eab308"; // Yellow
-            explanation.textContent = "MEDIUM SUSPICION. Moderate cluster overlaps. Some early buyers are connected, but supply distribution is relatively spread.";
-        } else {
-            badge.style.backgroundColor = "var(--color-safe)";
-            explanation.textContent = "SAFE OR LOW RISK. Clear wallet distributions. Funding sources appear organic, and early buying activity does not show insider coordination.";
-        }
+        badge.style.background = riskColor;
+        badge.style.boxShadow = `0 4px 15px ${riskGlow}`;
+        explanation.textContent = riskText;
 
         // 3. Render Wallets Table
         const tableBody = document.getElementById("wallets-table-body");
