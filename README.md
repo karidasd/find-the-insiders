@@ -9,7 +9,14 @@
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
   <img src="https://img.shields.io/badge/Vis.js-Network_Graph-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/DexScreener-Free_API-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Status-Live-brightgreen?style=for-the-badge" />
+  <a href="https://find-the-insiders.onrender.com">
+    <img src="https://img.shields.io/badge/🔴_LIVE_DEMO-find--the--insiders.onrender.com-ef4444?style=for-the-badge" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://find-the-insiders.onrender.com">🌐 <strong>https://find-the-insiders.onrender.com</strong></a>
 </p>
 
 <p align="center">
@@ -103,7 +110,17 @@ find-the-insiders/
 
 ---
 
-## 🚀 Quick Start
+## 🌐 Live Demo
+
+> **👉 [https://find-the-insiders.onrender.com](https://find-the-insiders.onrender.com)**
+
+The app is deployed live on Render.com. No installation needed — open the link, paste any Solana token contract address, and hit **Trace**.
+
+> **Note:** The free Render tier sleeps after 15 min of inactivity. First load may take ~20 seconds to wake up.
+
+---
+
+## 🚀 Run Locally
 
 ### 1. Clone the Repository
 ```bash
@@ -113,7 +130,7 @@ cd find-the-insiders
 
 ### 2. Install Python Dependencies
 ```bash
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 3. Launch (One Command)
