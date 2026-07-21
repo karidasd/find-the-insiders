@@ -118,9 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const shortAddr = w.address.substring(0, 6) + "..." + w.address.substring(w.address.length - 4);
             const shortFunder = w.funding_source.substring(0, 6) + "..." + w.funding_source.substring(w.funding_source.length - 4);
             
+            const txCount = w.wallet_tx_count ?? "N/A";
             const ageBadge = w.is_fresh_wallet 
-                ? `<span class="tag-badge" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--color-danger); font-size:0.75rem;"><i class="fas fa-baby"></i> FRESH (${w.wallet_tx_count} txs)</span>`
-                : `<span class="tag-badge" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--color-safe); font-size:0.75rem;"><i class="fas fa-clock"></i> ACTIVE (${w.wallet_tx_count} txs)</span>`;
+                ? `<span class="tag-badge" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--color-danger); font-size:0.75rem;"><i class="fas fa-baby"></i> FRESH (${txCount} txs)</span>`
+                : `<span class="tag-badge" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--color-safe); font-size:0.75rem;"><i class="fas fa-clock"></i> ACTIVE (${txCount} txs)</span>`;
 
             const tr = document.createElement("tr");
             tr.innerHTML = `

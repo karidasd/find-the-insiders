@@ -1,10 +1,8 @@
 import os
-import json
 import random
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -16,7 +14,7 @@ app = FastAPI(title="Solana Insider Wallet Detector API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # Cannot be True when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -92,7 +90,6 @@ def generate_mock_analysis(token_address: str, real_market_data=None):
     for i in range(insider_count):
         addr = make_sol_address(prefix="Insid")
         block = random.choice([0, 1, 2])
-        balance = round(random.uniform(500, 15000), 2)
         # 70% funded by central wallet, 30% funded by exchange hot wallet with identical amounts
         funder = shared_funder_1 if random.random() < 0.7 else shared_funder_2
         amount = 0.50 if funder == shared_funder_2 else round(random.uniform(1.5, 5.0), 2)
@@ -298,7 +295,8 @@ def analyze_token_onchain(token_address: str):
                 "type": "Holder" if i >= 5 else "Insider",  # first 5 are considered potential insiders for score
                 "block_purchased": random.choice([0, 1, 2]) if i < 5 else random.randint(5, 50),
                 "sol_spent": round(random.uniform(0.5, 2.5), 2),
-                "percentage_held": round(amount / 10**9, 2),  # simplified percentage
+                # amount is raw token units; convert to % of 1 billion supply (common Solana default)
+                "percentage_held": round((amount / 1_000_000_000) * 100, 4),
                 "funding_source": funding_source,
                 "funding_amount": funding_amount if funding_amount > 0 else 0.5,
                 "funding_time": "N/A",
@@ -327,8 +325,10 @@ def analyze_token_onchain(token_address: str):
             risk_level = "LOW RISK"
 
         # Build Vis.js Nodes & Edges
-        nodes = [{"id": "token", "label": market_data["symbol"] if market_data else "TOKEN", "group": "token", "size": 35}]
+        symbol_label = market_data["symbol"] if market_data else "TOKEN"
+        nodes = [{"id": "token", "label": symbol_label, "group": "token", "size": 35}]
         edges = []
+        funder_nodes_added = set()
         
         for w in wallets:
             label = w["address"][:5] + "..." + w["address"][-4:]
@@ -338,12 +338,32 @@ def analyze_token_onchain(token_address: str):
                 "group": w["type"].lower(),
                 "size": 20
             })
+            # Edge: wallet -> token (color by type)
+            edge_color = "#ef4444" if w["type"] == "Insider" else "#10b981"
             edges.append({
                 "from": w["address"],
                 "to": "token",
-                "label": f"Holder",
-                "color": {"color": "#10b981"}
+                "label": f"Block {w['block_purchased']}",
+                "color": {"color": edge_color}
             })
+            # Edge: funder -> wallet (only for non-generic funding sources)
+            funder = w["funding_source"]
+            if funder and funder not in ("Unknown Source", "N/A"):
+                if funder not in funder_nodes_added:
+                    funder_label = funder if len(funder) < 20 else funder[:6] + "..." + funder[-4:]
+                    nodes.append({
+                        "id": funder,
+                        "label": funder_label,
+                        "group": "funder",
+                        "size": 25
+                    })
+                    funder_nodes_added.add(funder)
+                edges.append({
+                    "from": funder,
+                    "to": w["address"],
+                    "label": f"{w['funding_amount']:.2f} SOL",
+                    "color": {"color": "#8b5cf6"}
+                })
 
         return {
             "token_address": token_address,
