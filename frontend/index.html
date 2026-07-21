@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Insider Detector | On-Chain Intelligence</title>
+    <meta name="description" content="Detect insider wallets, trace funding flows, and map token supply clusters on the Solana blockchain.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vis.js CDN for interactive network graphs -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="background-glow glow-2"></div>
+    <div class="grid-overlay"></div>
+
+    <header class="glass-header">
+        <div class="container header-content">
+            <div class="logo"><i class="fas fa-radar"></i> <span class="gradient-text">Insider</span> Radar</div>
+            <div class="status-badge" id="api-status">
+                <span class="dot-blink"></span> Scanning mainnet-beta
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- SEARCH SECTION -->
+        <section class="search-section text-center">
+            <h1>Solana <span class="gradient-text">Insider Detector</span></h1>
+            <p class="subtitle">Enter a Solana Token Contract Address (CA) to trace block-0 buyers, analyze funding pipelines, and evaluate holding risk scores.</p>
+            
+            <form id="search-form" class="search-box">
+                <input type="text" id="token-address" placeholder="Enter Token Mint Address (e.g. EPjFWD...)" required>
+                <button type="submit"><i class="fas fa-search"></i> Trace</button>
+            </form>
+            
+            <div class="examples">
+                <span>Try example token:</span>
+                <button type="button" class="btn-example" data-address="DezXAZ8z7PnrnRJjz3wXh3tRe6SgCDGdXcrUMxP8pump">BONK</button>
+                <button type="button" class="btn-example" data-address="JUPyiwrYdGNwM2KUeRFaeUBQVLcv1NS8w1ipUXRPpump">JUPITER</button>
+                <button type="button" class="btn-example" data-address="ukHH6c7m4uRq4sH42cGL79Sss24MLJSpZZEj1k3pump">WIF</button>
+            </div>
+        </section>
+
+        <!-- LOADING INDICATOR -->
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <h3>Parsing On-Chain Transaction Logs...</h3>
+            <p>Scanning blocks, tracing incoming system program transfers, and auditing top wallets.</p>
+        </div>
+
+        <!-- ANALYSIS DASHBOARD (Hidden initially) -->
+        <div id="dashboard" class="dashboard-grid">
+            
+            <!-- MARKET AND RISK COLUMN -->
+            <div class="dashboard-left">
+                <!-- Market Card -->
+                <div class="glass-card market-card">
+                    <div class="token-header">
+                        <div class="token-avatar" id="token-symbol-avatar">T</div>
+                        <div>
+                            <h2 id="token-name">Token Name</h2>
+                            <span id="token-symbol" class="token-symbol-tag">SYMBOL</span>
+                        </div>
+                    </div>
+                    
+                    <div class="market-stats">
+                        <div class="stat-box">
+                            <span class="label">Price</span>
+                            <span class="value" id="price-usd">$0.00</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">Liquidity</span>
+                            <span class="value" id="liquidity-usd">$0.00</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">24h Volume</span>
+                            <span class="value" id="volume-usd">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dex-link-container">
+                        <a href="#" id="dex-link" target="_blank" class="btn btn-secondary"><i class="fas fa-external-link-alt"></i> View on DexScreener</a>
+                    </div>
+                </div>
+
+                <!-- Risk Meter Card -->
+                <div class="glass-card risk-card text-center">
+                    <h3>Insider Risk Score</h3>
+                    <div class="risk-meter-container">
+                        <div class="risk-circle-wrap">
+                            <div class="risk-circle" id="risk-circle">
+                                <span class="score-number" id="risk-score">0</span>
+                                <span class="score-label" id="risk-label">SAFE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="risk-level-badge" id="risk-level-badge">LOW RISK</div>
+                    <p class="risk-explanation" id="risk-explanation">No significant wallet clusters or block-0 buyer patterns detected on system program transfers.</p>
+                </div>
+            </div>
+
+            <!-- CLUSTER GRAPH COLUMN -->
+            <div class="dashboard-right">
+                <div class="glass-card graph-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-project-diagram"></i> Wallet Cluster Graph</h3>
+                        <span class="legend-badge">
+                            <span class="legend-dot token"></span> Token
+                            <span class="legend-dot insider"></span> Insider
+                            <span class="legend-dot holder"></span> Holder
+                            <span class="legend-dot funder"></span> Funder Hub
+                        </span>
+                    </div>
+                    <div class="network-container" id="network-container">
+                        <!-- Network Graph Rendered Here -->
+                        <div class="graph-placeholder">Enter a token address above to trace funding and map clusters.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAILED WALLETS TABLE -->
+            <div class="dashboard-bottom glass-card">
+                <h3><i class="fas fa-wallet"></i> Top Holders & Insider Analysis</h3>
+                <div class="table-responsive">
+                    <table class="wallets-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Type</th>
+                                <th>Holdings %</th>
+                                <th>SOL Spent</th>
+                                <th>Purchased At</th>
+                                <th>Funding Source</th>
+                                <th>Funding Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wallets-table-body">
+                            <!-- Table Rows Rendered Here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Built by <strong>DARKAIS Data Science</strong> · Solana Wallet Tracker 2026</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
