@@ -18,12 +18,14 @@ def run_backend():
     ], cwd=backend_dir)
 
 def run_frontend():
-    print("Starting frontend server on port 3000...")
+    print("Starting frontend server on port 3000 (local fallback)...")
     frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
     
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=frontend_dir, **kwargs)
+        def log_message(self, format, *args):  # suppress noisy request logs
+            pass
 
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("127.0.0.1", 3000), Handler) as httpd:
@@ -47,10 +49,13 @@ if __name__ == "__main__":
     # Open browser automatically
     print("\n" + "="*50)
     print("SOLANA INSIDER DETECTOR IS ONLINE")
-    print("Opening dashboard at: http://localhost:3000")
+    print("Backend  → http://localhost:8000")
+    print("Frontend → http://localhost:3000")
+    print("Opening  → http://localhost:8000")
     print("="*50 + "\n")
     
-    webbrowser.open("http://localhost:3000")
+    # FastAPI now serves the frontend — open port 8000
+    webbrowser.open("http://localhost:8000")
     
     # Keep main thread alive
     try:

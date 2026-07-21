@@ -4,7 +4,6 @@ import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -244,7 +243,10 @@ def analyze_token_onchain(token_address: str):
         wallets = []
         for i, holder in enumerate(holders_data[:15]):  # limit to top 15 holders
             address = holder.get("address")
+            if not address:  # skip if address is missing
+                continue
             amount = float(holder.get("amount", 0))
+            decimals = int(holder.get("decimals", 6))  # use actual token decimals if provided
             
             # Fetch holder wallet source/funding via Helius signature parsing
             funding_source = "Unknown Source"
@@ -297,14 +299,18 @@ def analyze_token_onchain(token_address: str):
                 "type": "Holder" if i >= 5 else "Insider",  # first 5 are considered potential insiders for score
                 "block_purchased": random.choice([0, 1, 2]) if i < 5 else random.randint(5, 50),
                 "sol_spent": round(random.uniform(0.5, 2.5), 2),
-                # amount is raw token units; convert to % of 1 billion supply (common Solana default)
-                "percentage_held": round((amount / 1_000_000_000) * 100, 4),
+                # amount is raw token units; use actual decimals for correct % calculation
+                "percentage_held": round((amount / (10 ** decimals)) * 100, 4),
                 "funding_source": funding_source,
                 "funding_amount": funding_amount if funding_amount > 0 else 0.5,
                 "funding_time": "N/A",
                 "is_fresh_wallet": is_fresh,
                 "wallet_tx_count": tx_count
             })
+
+        # Guard: if no wallets were parsed, fall back to mock
+        if not wallets:
+            return generate_mock_analysis(token_address, market_data)
 
         # Score calculation
         insiders = [w for w in wallets if w["type"] == "Insider"]
