@@ -592,6 +592,15 @@ body {
     overflow: hidden;
 }
 
+/* Take the vis-network canvas out of the flow so the container's height
+   never depends on the canvas. Otherwise vis's 1s auto-resize poll and the
+   content-sized container feed each other and the card grows every second. */
+/* !important is needed because vis-network sets position: relative inline. */
+.network-container > .vis-network {
+    position: absolute !important;
+    inset: 0;
+}
+
 /* Subtle inner grid for graph background */
 .network-container::before {
     content: '';
